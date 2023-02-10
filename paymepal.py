@@ -33,7 +33,19 @@ def login():
         
 @app.route("/admin")
 def admin():
-    return "OK"
+
+    query = f"""
+        SELECT *
+        FROM transactions t
+        INNER JOIN shops s
+        ON t.shop_id = s.id
+        WHERE user_id='{session["user_id"]}'
+        """
+
+    with engine.connect() as connection:
+        results = connection.execute(query).fetchall()
+
+        return render_template("private.html", transactions=results)
 
 
 @app.route("/unauthorized")
