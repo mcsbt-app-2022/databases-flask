@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect
 from sqlalchemy import create_engine
 
 app = Flask(__name__)
@@ -14,19 +14,30 @@ def login():
     username = request.form["user"]
     password = request.form["password"]
 
-    query = "SELECT * FROM users WHERE username='" + username + "' AND password='" + password + "';"
+    query = f"""
+        SELECT *
+        FROM users
+        WHERE username='{username}' AND password='{password}';
+        """
 
     with engine.connect() as connection:
-        # use fetchone()
-        row = connection.execute(query)
+        row = connection.execute(query).fetchone()
 
         if row:
             session["username"] = username
             session["user_id"] = row[0]
             
-            return "OK"
+            return redirect("/admin")
+        else:
+            return redirect("/unauthorized")
+        
+@app.route("/admin")
+def admin():
+    return "OK"
 
-        return str(rows)
 
+@app.route("/unauthorized")
+def unauthorized():
+    return render_template("unauthorized.html")
 
 app.run(debug=True, port=8080)
